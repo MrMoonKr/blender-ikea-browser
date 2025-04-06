@@ -1,5 +1,4 @@
-Blender IKEA Browser
-====================
+# Blender IKEA Browser
 Import 3D models from ikea.com into your scene!
 
 ![Screenshot](./.github/images/screenshot.jpg?raw=true)
@@ -10,23 +9,23 @@ If you work at IKEA and can help me to make this more legit, please get in touch
 
 This is very much an early proof-of-concept, check the github issues for an approximation of a roadmap
 
-Dev notes
----------
+# Dev Notes
 Blender 4.2.0 uses python 3.11 specifically, so use that to install bpy and create a virtualenv for if you want to have IDE autocompletions and such:
 ```
 python3.11 -m venv venv
 venv/bin/pip install bpy blender-stubs
 ```
 
-Build the addon .zip file:
+## Manual Build
 ```
 blender --command extension build
 ```
 
-Installation:
+## Manual Installation
 * blender -> edit -> preferences -> add-ons -> install from disk -> select the .zip file
 
-Configuration:
+
+# Configuration
 * After installation, expand the addon settings in preferences
 * Set your country code (e.g., 'ie' for Ireland, 'fr' for France)
 * Set your language code (e.g., 'en' for English, 'fr' for French)
