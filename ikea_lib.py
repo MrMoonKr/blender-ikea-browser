@@ -30,7 +30,7 @@ class IkeaApiWrapper:
     ) -> str:
         log.debug("Request URL: %s", url + "?" + urllib.parse.urlencode(params))
         log.debug("Request headers: %s", headers)
-        
+
         try:
             return urllib.request.urlopen(
                 urllib.request.Request(
@@ -90,11 +90,6 @@ class IkeaApiWrapper:
         for i in search_results["searchResultPage"]["products"]["main"]["items"]:
             p = i["product"]
 
-            # Art products are 3D models
-            if p["itemType"] != "ART":
-                log.debug(f"Skipping non-art product: {p}")
-                continue
-
             valid = True
             for field in {"itemNo", "mainImageUrl", "mainImageAlt", "pipUrl"}:
                 if field not in p:
@@ -118,7 +113,7 @@ class IkeaApiWrapper:
 
         if not results:
             log.info("No products found for query: %s", query)
-            
+
         return results
 
     def get_pip(self, itemNo: str) -> t.Dict[str, t.Any]:
