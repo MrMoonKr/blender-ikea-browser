@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import typing as t
 import pathlib
 import json
@@ -204,8 +206,8 @@ if __name__ == "__main__":
     )
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--country", default="ie")
-    parser.add_argument("--language", default="en")
+    parser.add_argument("-c", "--country", default="ie")
+    parser.add_argument("-l", "--language", default="en")
     subparsers = parser.add_subparsers(dest="cmd")
     search_parser = subparsers.add_parser("search")
     search_parser.add_argument("query", type=str, nargs="+")
@@ -218,7 +220,9 @@ if __name__ == "__main__":
     ikea = IkeaApiWrapper(args.country, args.language)
     if args.cmd == "search":
         print(json.dumps(ikea.search(" ".join(args.query)), indent=4))
-    if args.cmd == "metadata":
+    elif args.cmd == "metadata":
         print(json.dumps(ikea.get_pip(args.itemNo), indent=4))
-    if args.cmd == "model":
+    elif args.cmd == "model":
         print(ikea.get_model(args.itemNo))
+    else:
+        print("No command specified")
