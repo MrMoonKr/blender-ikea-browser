@@ -173,7 +173,7 @@ class IkeaProductPanel(bpy.types.Panel):
             layout.label(text="Enable online access to see more details")
             return
 
-        if itemNo == _last_itemNo:
+        if itemNo == _last_itemNo and _last_pip != None:
             pip = _last_pip
         else:
             pip = ikea.get_pip(itemNo)
