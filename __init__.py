@@ -27,7 +27,8 @@ def _get_thumbnail_icon(itemNo: str, url: str) -> int:
         # it appears that images don't always fully load when thumbs.load()
         # is called, but accessing the image_size property forces the image
         # to load fully???
-        _wat = ip.image_size[0] + ip.image_size[1]
+        if ip.image_size[0] == 0 or ip.image_size[1] == 0:
+            log.warning(f"Thumbnail {itemNo} is empty")
 
     return thumbs[itemNo].icon_id
 
