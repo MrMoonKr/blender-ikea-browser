@@ -72,6 +72,7 @@ class IkeaImportOperator(bpy.types.Operator):
     bl_idname = "ikea.import"
     bl_label = "Import a product"
 
+    itemName: bpy.props.StringProperty()  # type: ignore
     itemNo: bpy.props.StringProperty()  # type: ignore
 
     def execute(self, context) -> t.Set[str]:
@@ -80,7 +81,6 @@ class IkeaImportOperator(bpy.types.Operator):
             return {"CANCELLED"}
 
         try:
-            pip = ikea.get_pip(self.itemNo)
             try:
                 bpy.ops.import_scene.gltf(filepath=ikea.get_model(self.itemNo))
             except AttributeError:
@@ -90,7 +90,8 @@ class IkeaImportOperator(bpy.types.Operator):
             for obj in bpy.context.selected_objects:
                 assert isinstance(obj, bpy.types.Object)
                 obj["ikeaItemNo"] = self.itemNo
-                obj.name = pip["name"] + "_" + ikea.format(obj["ikeaItemNo"])
+                obj["ikeaItemName"] = self.itemName
+                obj.name = self.itemName + "_" + ikea.format(obj["ikeaItemNo"])
                 if not obj.parent:
                     obj.location = bpy.context.scene.cursor.location
         except IkeaException as e:
@@ -137,6 +138,7 @@ class IkeaBrowserPanel(bpy.types.Panel):
             box.template_icon(icon_value=icon, scale=10)
             btn = box.operator(IkeaImportOperator.bl_idname, text="Import")
             btn.itemNo = result["itemNo"]
+            btn.itemName = result["name"]
 
 
 _last_itemNo = None
@@ -180,20 +182,23 @@ class IkeaProductPanel(bpy.types.Panel):
             _last_itemNo = itemNo
             _last_pip = pip
 
-        icon = _get_thumbnail_icon(itemNo, pip["mainImage"]["url"])
-        layout.template_icon(icon_value=icon, scale=10)
+        if pip:
+            icon = _get_thumbnail_icon(itemNo, pip["mainImage"]["url"])
+            layout.template_icon(icon_value=icon, scale=10)
 
-        grid = layout.grid_flow(row_major=True, even_rows=False, columns=2)
-        grid.label(text="Name")
-        grid.label(text=pip["name"])
-        grid.label(text="Price")
-        grid.label(text=pip["price"])
-        grid.label(text="Style")
-        grid.label(text=pip["styleGroup"])
-        grid.label(text="Type")
-        grid.label(text=pip["typeName"])
+            grid = layout.grid_flow(row_major=True, even_rows=False, columns=2)
+            grid.label(text="Name")
+            grid.label(text=pip["name"])
+            grid.label(text="Price")
+            grid.label(text=pip["price"])
+            grid.label(text="Style")
+            grid.label(text=pip["styleGroup"])
+            grid.label(text="Type")
+            grid.label(text=pip["typeName"])
 
-        layout.operator("wm.url_open", text="Open Website").url = pip["pipUrl"]
+            layout.operator("wm.url_open", text="Open Website").url = pip["pipUrl"]
+        else:
+            layout.label(text="Product info missing")
 
 
 def _update_search(self, context) -> None:

@@ -101,7 +101,7 @@ class IkeaApiWrapper:
                 results.append(
                     {
                         "itemNo": p["itemNo"],
-                        # "name": p['name'],
+                        "name": p['name'],
                         # "typeName": p['typeName'],
                         # "itemMeasureReferenceText": p['itemMeasureReferenceText'],
                         "mainImageUrl": p["mainImageUrl"],
