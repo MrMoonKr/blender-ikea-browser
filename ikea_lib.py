@@ -216,13 +216,10 @@ class IkeaApiWrapper:
 if __name__ == "__main__":
     import argparse
 
-    logging.basicConfig(
-        level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(message)s"
-    )
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--country", default="ie")
     parser.add_argument("-l", "--language", default="en")
+    parser.add_argument("-v", "--verbose", action="store_true")
     subparsers = parser.add_subparsers(dest="cmd")
     search_parser = subparsers.add_parser("search")
     search_parser.add_argument("query", type=str, nargs="+")
@@ -231,6 +228,11 @@ if __name__ == "__main__":
     model_parser = subparsers.add_parser("model")
     model_parser.add_argument("itemNo", type=str)
     args = parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.DEBUG if args.verbose else logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s %(message)s"
+    )
 
     ikea = IkeaApiWrapper(args.country, args.language)
     if args.cmd == "search":
