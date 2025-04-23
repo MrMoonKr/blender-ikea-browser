@@ -8,6 +8,9 @@ import re
 import urllib.request
 import urllib.parse
 
+# This ID appears to be hard-coded in the website source code?
+CLIENT_ID = "4863e7d2-1428-4324-890b-ae5dede24fc6"
+
 log = logging.getLogger(__name__)
 
 
@@ -96,6 +99,9 @@ class IkeaApiWrapper:
                     name = p["name"]
                     log.info(f"{name} is missing {field}")
                     valid = False
+            if valid and not self.get_exists(p['itemNo']):
+                log.info(f"{p['name']} exists but no model is available")
+                valid = False
 
             if valid:
                 results.append(
@@ -157,6 +163,24 @@ class IkeaApiWrapper:
 
         return str(cache_path)
 
+    def get_exists(self, itemNo: str) -> bool:
+        log.debug(f"Checking if model exists for #{itemNo}")
+        cache_path = self.cache_dir / itemNo / "exists.json"
+
+        if not cache_path.exists():
+            try:
+                data = self._get(
+                    f"https://web-api.ikea.com/{self.country}/{self.language}/rotera/data/exists/{itemNo}",
+                    headers={"X-Client-Id": CLIENT_ID},
+                )
+                cache_path.parent.mkdir(parents=True, exist_ok=True)
+                cache_path.write_bytes(data)
+            except Exception as e:
+                log.exception(f"Error checking model existence for #{itemNo}:")
+                raise IkeaException(f"Error checking model existence for #{itemNo}: {e}")
+
+        return json.loads(cache_path.read_text())["exists"]
+
     def get_model(self, itemNo: str) -> str:
         """
         Get a 3D model for the given product.
@@ -168,19 +192,12 @@ class IkeaApiWrapper:
         if not cache_path.exists():
             log.info(f"Downloading model for #{itemNo}")
             try:
-                # This ID appears to be hard-coded in the website source code?
-                headers = {"X-Client-Id": "4863e7d2-1428-4324-890b-ae5dede24fc6"}
-                rotera_exists = self._get_json(
-                    f"https://web-api.ikea.com/{self.country}/{self.language}/rotera/data/exists/{itemNo}",
-                    headers=headers,
-                )
-                log.debug("Exists data: %r", rotera_exists)
-                if not rotera_exists["exists"]:
+                if not self.get_exists(itemNo):
                     raise IkeaException(f"No model available for #{itemNo}")
 
                 rotera_data = self._get_json(
                     f"https://web-api.ikea.com/{self.country}/{self.language}/rotera/data/model/{itemNo}",
-                    headers=headers,
+                    headers={"X-Client-Id": CLIENT_ID},
                 )
                 log.debug("Model metadata: %r", rotera_data)
                 data = self._get(rotera_data["modelUrl"])
