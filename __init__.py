@@ -91,7 +91,7 @@ class IkeaImportOperator(bpy.types.Operator):
                 assert isinstance(obj, bpy.types.Object)
                 obj["ikeaItemNo"] = self.itemNo
                 obj["ikeaItemName"] = self.itemName
-                obj.name = self.itemName + "_" + ikea.format(obj["ikeaItemNo"])
+                obj.name = self.itemName + "_" + ikea.format_item_no(obj["ikeaItemNo"])
                 if not obj.parent:
                     obj.location = bpy.context.scene.cursor.location
         except IkeaException as e:
@@ -169,7 +169,7 @@ class IkeaProductPanel(bpy.types.Panel):
 
         row = layout.row()
         row.label(text="Item No")
-        row.label(text=ikea.format(itemNo))
+        row.label(text=ikea.format_item_no(itemNo))
 
         if not bpy.app.online_access:
             layout.label(text="Enable online access to see more details")

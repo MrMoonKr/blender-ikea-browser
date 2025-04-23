@@ -59,8 +59,11 @@ class IkeaApiWrapper:
     def is_item_no(self, itemNo: str) -> bool:
         return re.match(r"^\d{3}\.?\d{3}\.?\d{2}$", itemNo) is not None
 
-    def format(self, itemNo: str) -> str:
-        itemNo = re.sub(r"[^0-9]", "", itemNo)
+    def compact_item_no(self, itemNo: str) -> str:
+        return re.sub(r"[^0-9]", "", itemNo)
+
+    def format_item_no(self, itemNo: str) -> str:
+        itemNo = self.compact_item_no(itemNo)
         return itemNo[0:3] + "." + itemNo[3:6] + "." + itemNo[6:8]
 
     def search(self, query: str) -> t.List[t.Dict[str, t.Any]]:
@@ -233,8 +236,8 @@ if __name__ == "__main__":
     if args.cmd == "search":
         print(json.dumps(ikea.search(" ".join(args.query)), indent=4))
     elif args.cmd == "metadata":
-        print(json.dumps(ikea.get_pip(args.itemNo), indent=4))
+        print(json.dumps(ikea.get_pip(ikea.compact_item_no(args.itemNo)), indent=4))
     elif args.cmd == "model":
-        print(ikea.get_model(args.itemNo))
+        print(ikea.get_model(ikea.compact_item_no(args.itemNo)))
     else:
         print("No command specified")
