@@ -10,6 +10,7 @@ import urllib.parse
 
 # This ID appears to be hard-coded in the website source code?
 CLIENT_ID = "4863e7d2-1428-4324-890b-ae5dede24fc6"
+USER_AGENT = "Blender IKEA Browser ( https://github.com/shish/blender-ikea-browser/ )"
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +34,10 @@ class IkeaApiWrapper:
     ) -> str:
         log.debug("Request URL: %s", url + "?" + urllib.parse.urlencode(params))
         log.debug("Request headers: %s", headers)
+
+        if "web-api.ikea.com" in url:
+            headers["X-Client-Id"] = CLIENT_ID
+            headers["User-Agent"] = USER_AGENT
 
         try:
             return urllib.request.urlopen(
@@ -173,8 +178,7 @@ class IkeaApiWrapper:
         if not cache_path.exists():
             try:
                 data = self._get(
-                    f"https://web-api.ikea.com/{self.country}/{self.language}/rotera/data/exists/{itemNo}",
-                    headers={"X-Client-Id": CLIENT_ID},
+                    f"https://web-api.ikea.com/{self.country}/{self.language}/rotera/data/exists/{itemNo}"
                 )
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
                 cache_path.write_bytes(data)
@@ -199,8 +203,7 @@ class IkeaApiWrapper:
                     raise IkeaException(f"No model available for #{itemNo}")
 
                 rotera_data = self._get_json(
-                    f"https://web-api.ikea.com/{self.country}/{self.language}/rotera/data/model/{itemNo}",
-                    headers={"X-Client-Id": CLIENT_ID},
+                    f"https://web-api.ikea.com/{self.country}/{self.language}/rotera/data/model/{itemNo}"
                 )
                 log.debug("Model metadata: %r", rotera_data)
                 data = self._get(rotera_data["modelUrl"])
