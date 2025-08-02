@@ -120,6 +120,8 @@ class IkeaBrowserPanel(bpy.types.Panel):
             return
 
         layout = self.layout
+        for addon in bpy.context.preferences.addons:
+            print( f"Addon: {addon}, enabled: {bpy.context.preferences.addons[addon].enabled}")
         prefs = bpy.context.preferences.addons[__package__].preferences
         layout.label(text=f"Region: {prefs.country.upper()} - Language: {prefs.language.upper()}")
         layout.prop(context.window_manager, "ikea_search", text="", icon="VIEWZOOM")
@@ -227,3 +229,9 @@ def unregister() -> None:
     bpy.utils.unregister_class(IkeaProductPanel)
     bpy.utils.unregister_class(IkeaBrowserPanel)
     bpy.utils.unregister_class(IkeaBrowserPreferences)
+    
+    
+if __name__ == "__main__":
+    register()
+elif __name__ == "bl_ext.vscode_development.blender-ikea-browser":
+    register()
