@@ -86,6 +86,12 @@ class IkeaImportOperator(bpy.types.Operator):
             except AttributeError:
                 self.report({"ERROR"}, "Blender is missing the glTF import add-on, please enable it in Preferences")
                 return {"CANCELLED"}
+            except RuntimeError as e:
+                if "libextern_draco" in str(e):
+                    self.report({"ERROR"}, "libextern_draco error. This is a problem with blender itself, and should be fixed in the latest release, please upgrade.\n\n" + str(e))
+                    return {"CANCELLED"}
+                else:
+                    raise
 
             for obj in bpy.context.selected_objects:
                 assert isinstance(obj, bpy.types.Object)
