@@ -5,8 +5,9 @@ import pathlib
 import json
 import logging
 import re
-import urllib.request
 import urllib.parse
+import http.client
+import ssl
 
 # This ID appears to be hard-coded in the website source code?
 CLIENT_ID = "4863e7d2-1428-4324-890b-ae5dede24fc6"
@@ -40,11 +41,23 @@ class IkeaApiWrapper:
             headers["User-Agent"] = USER_AGENT
 
         try:
-            return urllib.request.urlopen(
-                urllib.request.Request(
-                    url + "?" + urllib.parse.urlencode(params), headers=headers
-                )
-            ).read()
+            parsed_url = urllib.parse.urlparse(url)
+            path = parsed_url.path
+            if params:
+                path += "?" + urllib.parse.urlencode(params)
+
+            # Using http.client as a more robust alternative to urllib
+            context = ssl.create_default_context()
+            conn = http.client.HTTPSConnection(parsed_url.netloc, timeout=10, context=context)
+
+            conn.request("GET", path, headers=headers)
+            response = conn.getresponse()
+            if response.status < 200 or response.status >= 300:
+                raise IkeaException(f"HTTP Error {response.status}: {response.reason}")
+
+            data = response.read()
+            conn.close()
+            return data
         except Exception as e:
             log.exception(f"Error fetching {url}:")
             raise IkeaException(f"Error fetching {url}: {e}")
@@ -178,7 +191,7 @@ class IkeaApiWrapper:
         if not cache_path.exists():
             try:
                 data = self._get(
-                    f"https://web-api.ikea.com/{self.country}/{self.language}/rotera/data/exists/{itemNo}"
+                    f"https://web-api.ikea.com/{self.country}/{self.language}/rotera/data/exists/{itemNo}/"
                 )
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
                 cache_path.write_bytes(data)
@@ -203,7 +216,7 @@ class IkeaApiWrapper:
                     raise IkeaException(f"No model available for #{itemNo}")
 
                 rotera_data = self._get_json(
-                    f"https://web-api.ikea.com/{self.country}/{self.language}/rotera/data/model/{itemNo}"
+                    f"https://web-api.ikea.com/{self.country}/{self.language}/rotera/data/model/{itemNo}/"
                 )
                 log.debug("Model metadata: %r", rotera_data)
                 data = self._get(rotera_data["modelUrl"])
